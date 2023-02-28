@@ -37,3 +37,5 @@ soupsieve==2.4
 tqdm==4.64.1
 uritemplate==4.1.1
 urllib3==1.26.14
+
+schedule~=1.1.0

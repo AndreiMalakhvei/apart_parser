@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 import firebase_admin
-from firebase_admin import credentials, initialize_app, storage, _apps
+from firebase_admin import credentials, storage
 from data import Flat
 import requests
 import psycopg2
-from tqdm import tqdm
+
 
 class DataBase(ABC):
     @abstractmethod
@@ -76,8 +76,13 @@ class PostgresqlDB(SQLDataBase):
                     rooms INTEGER,
                     exyear INTEGER,
                     seller CHARACTER VARYING(100),
+                    is_tg_posted BOOLEAN DEFAULT FALSE,
+                    is_archived BOOLEAN DEFAULT FALSE,
                     objhash CHARACTER VARYING(50) UNIQUE,
-                    description CHARACTER VARYING(3000) 
+                    photo_qty INTEGER,
+                    photo_links  TEXT,
+                    description TEXT
+                    
                         )''')
 
     def check_if_exists(self, flat: Flat):
@@ -99,7 +104,7 @@ class PostgresqlDB(SQLDataBase):
             with conn.cursor() as cur:
                 cur.execute('''
                         INSERT INTO flats (link, reference, price, title, description, pubdate,areas,city,address,region,rooms,
-                        exyear,seller, objhash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                        exyear,seller, objhash, photo_links, photo_qty) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
                         ON CONFLICT (link) DO UPDATE 
                         SET 
                         link = EXCLUDED.link, 
@@ -114,9 +119,36 @@ class PostgresqlDB(SQLDataBase):
                         rooms = EXCLUDED.rooms,
                         exyear = EXCLUDED.exyear,
                         seller=EXCLUDED.seller,
-                        objhash=EXCLUDED.objhash                    
+                        objhash=EXCLUDED.objhash,
+                        photo_links=EXCLUDED.photo_links                 
                          ''',
                             (flat.link, flat.reference, flat.price, flat.title, flat.description, flat.pubdate,
                              flat.areas, flat.city, flat.address, flat.region, flat.rooms, flat.exyear,
-                             flat.seller, flat.objhash)
+                             flat.seller, flat.objhash, ','.join(flat.photo_links), flat.photo_qty)
+                            )
+    @staticmethod
+    def get_all_not_posted_flats(parser_types):
+        with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
+                              host=PostgresqlDB.HOST) as conn:
+            with conn.cursor() as cur:
+                cur.execute('''
+                        SELECT link, reference, price, title, description, pubdate, photo_links, id FROM flats
+                        WHERE (is_tg_posted = false or is_tg_posted IS NULL) 
+                        and reference IN %(parser_types)s
+                     ''',
+                            {'parser_types': tuple(parser_types)}
+                            )
+                return cur.fetchall()
+
+    @staticmethod
+    def update_is_posted_state(ids):
+        with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
+                              host=PostgresqlDB.HOST) as conn:
+            with conn.cursor() as cur:
+                cur.execute('''
+                        UPDATE flats SET
+                        is_tg_posted = true
+                        WHERE id = ANY(%s)
+                     ''',
+                            [ids, ]
                             )

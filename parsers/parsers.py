@@ -4,7 +4,7 @@ from data import Flat
 import re
 from datetime import datetime
 import hashlib
-from databases import PostgreDB
+from dbs.dbs import PostgresqlDB
 from tqdm import tqdm
 
 from parsers.baseparser import Parser
@@ -13,9 +13,9 @@ from parsers.baseparser import Parser
 class RealtByParser(Parser):
     def __init__(self):
         super().__init__()
-        self.parser_name = "bs4 for realt.by"
+        self.parser_name = "realt_by"
 
-    def get_all_last_flats_links(self, page_from=0, page_to=1):
+    def get_all_last_flats_links(self, page_from=1, page_to=1):
         flat_links = []
         while page_from <= page_to:
             resp = requests.get(f'https://realt.by/sale/flats/?page={page_from}')
@@ -73,9 +73,9 @@ class RealtByParser(Parser):
 
             images_tags = html.find_all('img', class_="blur-sm scale-105", alt="Изображение слайдера",
                                          attrs={"loading": "lazy"})
-            images_list = []
+            photo_links = []
             for image in images_tags:
-                images_list.append(image['src'])
+                photo_links.append(image['src'])
 
             new_flat = (Flat(
                 title=title,
@@ -93,7 +93,8 @@ class RealtByParser(Parser):
             objhash = hashlib.md5(bytearray(str(new_flat.__dict__), 'utf-8'))
             hd = objhash.hexdigest()
             new_flat.objhash = str(hd)
-            new_flat.images_list = images_list
+            new_flat.photo_links = photo_links
+            new_flat.photo_qty = len(photo_links)
             new_flat.link = link
             new_flat.reference = self.parser_name
             flats.append(new_flat)
@@ -104,9 +105,9 @@ class RealtByParser(Parser):
 class GoHomeParser(Parser):
     def __init__(self):
         super().__init__()
-        self.parser_name = "bs4 for gohome.by"
+        self.parser_name = "gohome_by"
 
-    def get_all_last_flats_links(self, page_from=0, page_to=1):
+    def get_all_last_flats_links(self, page_from=1, page_to=1):
         flat_links = []
         while page_from <= page_to:
             resp = requests.get(f'https://gohome.by/sale/search/30?search[type]=1&search[map_latitude]=&search[map_longitude]=&'
@@ -163,10 +164,10 @@ class GoHomeParser(Parser):
             seller = list(html.find('div', class_='customize-svg-inline-icon login').parent.stripped_strings)[-1]
 
             images_tags = filter(lambda x: len(x.attrs['class']) == 1, html.find_all('div', class_="responsive-image"))
-            images_list = []
+            photo_links = []
 
             for image in images_tags:
-                images_list.append('https://gohome.by' + image.next_element.next_element['data-zlazy'])
+                photo_links.append('https://gohome.by' + image.next_element.next_element['data-zlazy'])
 
             new_flat = (Flat(
                 title=title,
@@ -184,20 +185,10 @@ class GoHomeParser(Parser):
             objhash = hashlib.md5(bytearray(str(new_flat.__dict__), 'utf-8'))
             hd = objhash.hexdigest()
             new_flat.objhash = str(hd)
-            new_flat.images_list = images_list
+            new_flat.photo_links = photo_links
             new_flat.link = link
+            new_flat.photo_qty = len(photo_links)
             new_flat.reference = self.parser_name
             flats.append(new_flat)
 
         return flats
-
-if __name__ == "__main__":
-    pars = GoHomeParser()
-    pars.get_all_last_flats_links(page_to=0)
-    # for i in pars.ready_links:
-    #     print(i)
-    flatsl = pars.enrich_links_to_flats()
-    db = PostgreDB()
-    db.create_flats_table()
-    for i in tqdm(flatsl, desc='Adding records to DB'):
-        db.insert_flat(i)
