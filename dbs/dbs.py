@@ -4,6 +4,7 @@ from firebase_admin import credentials, storage
 from data import Flat
 import requests
 import psycopg2
+from secret_keys_db import POSTGRE_SECRET_KEYS
 
 
 class DataBase(ABC):
@@ -45,10 +46,10 @@ class FireStorage(DataBase):
 
 class PostgresqlDB(SQLDataBase):
 
-    DBNAME = 'appartdb'
-    USER = 'postgres'
-    PASSWORD = 'admin'
-    HOST = '127.0.0.1'
+    DBNAME = POSTGRE_SECRET_KEYS['DBNAME']
+    USER = POSTGRE_SECRET_KEYS['USER']
+    PASSWORD = POSTGRE_SECRET_KEYS['PASSWORD']
+    HOST = POSTGRE_SECRET_KEYS['HOST']
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -71,11 +72,11 @@ class PostgresqlDB(SQLDataBase):
                     pubdate TIMESTAMP WITH TIME ZONE,
                     areas NUMERIC(7, 2),
                     city CHARACTER VARYING(30),
-                    address CHARACTER VARYING(100),
+                    address CHARACTER VARYING(1000),
                     region CHARACTER VARYING(30),
                     rooms INTEGER,
                     exyear INTEGER,
-                    seller CHARACTER VARYING(100),
+                    seller CHARACTER VARYING(1000),
                     is_tg_posted BOOLEAN DEFAULT FALSE,
                     is_archived BOOLEAN DEFAULT FALSE,
                     objhash CHARACTER VARYING(50) UNIQUE,

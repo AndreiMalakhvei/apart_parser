@@ -4,13 +4,11 @@ from data import Flat
 import re
 from datetime import datetime
 import hashlib
-from dbs.dbs import PostgresqlDB
 from tqdm import tqdm
-
 from parsers.baseparser import Parser
 
 
-class RealtByParser(Parser):
+class RealtBS4Parser(Parser):
     def __init__(self):
         super().__init__()
         self.parser_name = "realt_by"
@@ -31,7 +29,7 @@ class RealtByParser(Parser):
 
     def enrich_links_to_flats(self, url_list):
         flats = []
-        for link in tqdm(url_list[:5], desc=f'Creating Flat objects from links ({self.parser_name})'):
+        for link in tqdm(url_list, desc=f'Creating Flat objects from links ({self.parser_name})'):
             resp = requests.get(link)
             html = BeautifulSoup(resp.content, 'html.parser')
             try:
@@ -102,7 +100,7 @@ class RealtByParser(Parser):
         return flats
 
 
-class GoHomeParser(Parser):
+class GoHomeBS4Parser(Parser):
     def __init__(self):
         super().__init__()
         self.parser_name = "gohome_by"
@@ -125,7 +123,7 @@ class GoHomeParser(Parser):
 
     def enrich_links_to_flats(self, url_list):
         flats = []
-        for link in tqdm(url_list[:5], desc=f'Creating Flat objects from links ({self.parser_name})'):
+        for link in tqdm(url_list, desc=f'Creating Flat objects from links ({self.parser_name})'):
             resp = requests.get(link)
             html = BeautifulSoup(resp.content, 'html.parser')
 
@@ -139,8 +137,6 @@ class GoHomeParser(Parser):
 
             inf_lst = [list(x.stripped_strings) for x in html.find_all("li", class_="li-feature")]
             dc = {item[0]: item[1] for item in inf_lst if len(item) > 1}
-
-
 
             areas = (float(dc["Площадь общая:"].split()[0]) if dc.get("Площадь общая:", 0) else 0)
             try:
