@@ -1,11 +1,11 @@
 from parsers.parsers import Parser
-from dbs.dbs import DataBase, SQLDataBase
+from dbs.dbs import DataBase, PostgresqlDB, SQLDataBase
 from tqdm import tqdm
 
 
 class WebSiteHandler:
 
-    def __init__(self, parser: Parser, sql_db: SQLDataBase):
+    def __init__(self, parser: Parser, sql_db: PostgresqlDB):
         self.parser = parser
         self.db = sql_db
         self.parser_sub = parser.parser_name
@@ -32,7 +32,7 @@ class WebSiteHandler:
     def run(self, page_from: int = 1, page_to: int = 1):
         links_list = self.get_urls_list(page_from, page_to)
         objs_list = self.build_flats_list(links_list)
-        self.save_to_db(objs_list)
+        self.db.batch_save_flat_to_db(objs_list)
 
 
 

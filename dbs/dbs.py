@@ -4,20 +4,26 @@ from firebase_admin import credentials, storage
 from data import Flat
 import requests
 import psycopg2
-from secret_keys_db import POSTGRE_SECRET_KEYS
+from dbs.secret_keys_db import POSTGRE_SECRET_KEYS
+from psycopg2 import extras as ext
+
 
 
 class DataBase(ABC):
+    @staticmethod
     @abstractmethod
-    def save_flat_to_db(self, flat: Flat):
+    def save_flat_to_db(flat: Flat):
         pass
 
 
 class SQLDataBase(DataBase):
-
+    @staticmethod
     @abstractmethod
-    def check_if_exists(self, flat: Flat):
+    def check_if_exists(flat: Flat):
         pass
+
+
+
 
 
 class FireStorage(DataBase):
@@ -29,7 +35,8 @@ class FireStorage(DataBase):
             cls.instance.name = "FireStorage"
         return cls.instance
 
-    def save_flat_to_db(self, flat):
+
+    def save_flat_to_db(flat):
         if flat.images_list:
             for num, image in enumerate(flat.images_list):
                 fileName = f"{flat.objhash}/{num}.jpg"
@@ -151,5 +158,61 @@ class PostgresqlDB(SQLDataBase):
                         is_tg_posted = true
                         WHERE id = ANY(%s)
                      ''',
+                            [ids, ]
+                            )
+
+    @staticmethod
+    def batch_save_flat_to_db(batch_of_flats):
+        with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
+                              host=PostgresqlDB.HOST) as conn:
+            with conn.cursor() as cur:
+                ext.execute_batch(cur, '''
+                        INSERT INTO flats (link, reference, price, title, description, pubdate,areas,city,address,region,rooms,
+                        exyear,seller, objhash, photo_links, photo_qty) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                        ON CONFLICT (link) DO UPDATE 
+                        SET 
+                        link = EXCLUDED.link, 
+                        price = EXCLUDED.price, 
+                        title = EXCLUDED.title, 
+                        description = EXCLUDED.description, 
+                        pubdate = EXCLUDED.pubdate,
+                        areas = EXCLUDED.areas,
+                        city = EXCLUDED.city,
+                        address = EXCLUDED.address,
+                        region = EXCLUDED.region,
+                        rooms = EXCLUDED.rooms,
+                        exyear = EXCLUDED.exyear,
+                        seller=EXCLUDED.seller,
+                        objhash=EXCLUDED.objhash,
+                        photo_links=EXCLUDED.photo_links                 
+                         ''',
+                                  (
+                                      (x.link, x.reference, x.price, x.title, x.description, x.pubdate, x.areas,
+                                       x.city,x.address,x.region,x.rooms, x.exyear,x.seller, x.objhash, x.photo_links,
+                                       x.photo_qty) for x in batch_of_flats), page_size=1000
+                            )
+
+    @staticmethod
+    def get_not_archived():
+        with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
+                              host=PostgresqlDB.HOST) as conn:
+            with conn.cursor() as cur:
+                cur.execute('''
+                            SELECT id, link FROM flats
+                            WHERE (is_archived = false or is_archived IS NULL) 
+                            and reference IN %(parser_types)s
+                         ''')
+                return cur.fetchall()
+
+    @staticmethod
+    def update_is_archived_state(ids):
+        with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
+                              host=PostgresqlDB.HOST) as conn:
+            with conn.cursor() as cur:
+                cur.execute('''
+                            UPDATE flats SET
+                            is_archived = true
+                            WHERE id = ANY(%s)
+                         ''',
                             [ids, ]
                             )
