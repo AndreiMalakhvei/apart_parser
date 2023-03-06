@@ -36,7 +36,7 @@ class FireStorage(DataBase):
         return cls.instance
 
 
-    def save_flat_to_db(flat):
+    def save_flat_to_db(self, flat):
         if flat.images_list:
             for num, image in enumerate(flat.images_list):
                 fileName = f"{flat.objhash}/{num}.jpg"
@@ -86,7 +86,7 @@ class PostgresqlDB(SQLDataBase):
                     seller CHARACTER VARYING(1000),
                     is_tg_posted BOOLEAN DEFAULT FALSE,
                     is_archived BOOLEAN DEFAULT FALSE,
-                    objhash CHARACTER VARYING(50) UNIQUE,
+                    objhash CHARACTER VARYING(50),
                     photo_qty INTEGER,
                     photo_links  TEXT,
                     description TEXT

@@ -5,7 +5,7 @@ from tbot import tg_poster
 from constants import postgresql, PARSED_WEBSITES
 
 
-PARSE_EVERY_MINUTES = 6
+PARSE_EVERY_MINUTES = 10
 
 
 def do_post_in_telegram():

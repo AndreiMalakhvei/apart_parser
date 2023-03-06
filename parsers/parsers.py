@@ -66,11 +66,14 @@ class RealtBS4Parser(Parser):
             city = dc.get("Населенный пункт", "")
             address = dc.get("Улица", "") + " " + dc.get("Номер дома", "")
             region = dc.get("Район города", "")
-            rooms = int(re.sub('[^0-9]', '', dc.get("Количество комнат", 0)))
-            exyear = int(re.sub('[^0-9]', '', dc.get("Год постройки", 0)))
 
-            images_tags = html.find_all('img', class_="blur-sm scale-105", alt="Изображение слайдера",
-                                         attrs={"loading": "lazy"})
+            try:
+                rooms = int(re.sub('[^0-9]', '', dc.get("Количество комнат", 0)))
+                exyear = int(re.sub('[^0-9]', '', dc.get("Год постройки", 0)))
+            except TypeError:
+                print(f'rooms or year error under {link}')
+
+            images_tags = html.find_all('img', attrs={"data-nimg": "fill", "loading": "lazy"}, class_='blur-sm')
             photo_links = []
             for image in images_tags:
                 photo_links.append(image['src'])
@@ -127,7 +130,11 @@ class GoHomeBS4Parser(Parser):
             resp = requests.get(link)
             html = BeautifulSoup(resp.content, 'html.parser')
 
-            title = html.find("div", class_='left-side').text.strip()
+            if html.find("div", class_='left-side'):
+                title = html.find("div", class_='left-side').text.strip()
+            else:
+                title = "No title provided"
+
             try:
                 price = int(re.sub('[^0-9]', '', html.find("div", class_='price big').text.strip()))
             except (TypeError, ValueError):

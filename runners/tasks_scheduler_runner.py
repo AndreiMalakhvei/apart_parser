@@ -4,7 +4,7 @@ import threading
 from datetime import datetime
 from constants import PARSED_WEBSITES
 
-PARSE_EVERY_MINUTES = 3
+PARSE_EVERY_MINUTES = 1
 
 def parse_all():
     for website in PARSED_WEBSITES:

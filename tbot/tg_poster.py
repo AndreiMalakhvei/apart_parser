@@ -1,5 +1,5 @@
 import telebot
-from secret_key_bot import BOT_SECRET_KEYS
+from tbot.secret_key_bot import BOT_SECRET_KEYS
 
 
 # https://t.me/realtyservbot
