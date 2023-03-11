@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Any, Iterator
+
 import firebase_admin
 from firebase_admin import credentials, storage
 from data import Flat
@@ -19,8 +21,14 @@ class DataBase(ABC):
 class SQLDataBase(DataBase):
     @staticmethod
     @abstractmethod
-    def check_if_exists(flat: Flat):
+    def create_flats_table(self) -> None:
         pass
+
+    @staticmethod
+    @abstractmethod
+    def check_if_exists(flat: Flat) -> bool:
+        pass
+
 
 
 
@@ -35,8 +43,7 @@ class FireStorage(DataBase):
             cls.instance.name = "FireStorage"
         return cls.instance
 
-
-    def save_flat_to_db(self, flat):
+    def save_flat_to_db(self, flat: Flat) -> None:
         if flat.images_list:
             for num, image in enumerate(flat.images_list):
                 fileName = f"{flat.objhash}/{num}.jpg"
@@ -44,7 +51,7 @@ class FireStorage(DataBase):
                 blob = self.bucket.blob(fileName)
                 blob.upload_from_string(img_data)
 
-    def create_connection_to_db(self):
+    def create_connection_to_db(self) -> None:
         self.cred = credentials.Certificate("dbs/realt-255b2-firebase-adminsdk-8e4p8-fd37fc570b.json")
         if not firebase_admin._apps:
             firebase_admin.initialize_app(self.cred, {'storageBucket': 'realt-255b2.appspot.com'})
@@ -65,7 +72,7 @@ class PostgresqlDB(SQLDataBase):
             cls.instance.create_flats_table()
         return cls.instance
 
-    def create_flats_table(self):
+    def create_flats_table(self) -> None:
         with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
                               host=PostgresqlDB.HOST) as conn:
             with conn.cursor() as cur:
@@ -94,7 +101,7 @@ class PostgresqlDB(SQLDataBase):
                     
                         )''')
 
-    def check_if_exists(self, flat: Flat):
+    def check_if_exists(self, flat: Flat) -> bool:
         with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
                               host=PostgresqlDB.HOST) as conn:
             with conn.cursor() as cur:
@@ -107,7 +114,7 @@ class PostgresqlDB(SQLDataBase):
         return False
 
 
-    def save_flat_to_db(self, flat):
+    def save_flat_to_db(self, flat: Flat) -> None:
         with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
                               host=PostgresqlDB.HOST) as conn:
             with conn.cursor() as cur:
@@ -137,7 +144,7 @@ class PostgresqlDB(SQLDataBase):
                              flat.seller, flat.objhash, ','.join(flat.photo_links), flat.photo_qty, flat.price_m)
                             )
     @staticmethod
-    def get_all_not_posted_flats(parser_types):
+    def get_all_not_posted_flats(parser_types: list[str]) -> list[tuple[Any, ...]]:
         with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
                               host=PostgresqlDB.HOST) as conn:
             with conn.cursor() as cur:
@@ -151,7 +158,7 @@ class PostgresqlDB(SQLDataBase):
                 return cur.fetchall()
 
     @staticmethod
-    def update_is_posted_state(ids):
+    def update_is_posted_state(ids: list[int]) -> None:
         with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
                               host=PostgresqlDB.HOST) as conn:
             with conn.cursor() as cur:
@@ -164,7 +171,7 @@ class PostgresqlDB(SQLDataBase):
                             )
 
     @staticmethod
-    def batch_save_flat_to_db(batch_of_flats):
+    def batch_save_flat_to_db(batch_of_flats: list[Flat]) -> None:
         with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
                               host=PostgresqlDB.HOST) as conn:
             with conn.cursor() as cur:
@@ -196,7 +203,7 @@ class PostgresqlDB(SQLDataBase):
                             )
 
     @staticmethod
-    def get_not_archived():
+    def get_not_archived() -> list[tuple[Any, ...]]:
         with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
                               host=PostgresqlDB.HOST) as conn:
             with conn.cursor() as cur:
@@ -208,7 +215,7 @@ class PostgresqlDB(SQLDataBase):
                 return cur.fetchall()
 
     @staticmethod
-    def update_is_archived_state(ids):
+    def update_is_archived_state(ids: list[int]) -> None:
         with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
                               host=PostgresqlDB.HOST) as conn:
             with conn.cursor() as cur:

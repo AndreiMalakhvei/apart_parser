@@ -8,7 +8,7 @@ from constants import postgresql, PARSED_WEBSITES
 PARSE_EVERY_MINUTES = 10
 
 
-def do_post_in_telegram():
+def do_post_in_telegram() -> None:
     print(f'Телеграм оповещения стартовали: {datetime.now()}')
     posts = postgresql.get_all_not_posted_flats(list(map(lambda x: x.parser_sub, PARSED_WEBSITES)))
     if posts:

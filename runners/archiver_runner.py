@@ -8,7 +8,8 @@ from datetime import datetime
 
 START_TIME = '01:00'
 
-def start_archiver():
+
+def start_archiver() -> None:
     print(f'Архиватор стартовал: {datetime.now()}')
     records_to_archieve = []
     active_records = postgresql.get_not_archived()

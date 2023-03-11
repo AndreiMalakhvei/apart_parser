@@ -6,7 +6,8 @@ from constants import PARSED_WEBSITES
 
 PARSE_EVERY_MINUTES = 1
 
-def parse_all():
+
+def parse_all() -> None:
     for website in PARSED_WEBSITES:
         thread = threading.Thread(target=website.run(1,2))
         thread.start()

@@ -13,7 +13,7 @@ class RealtBS4Parser(Parser):
         super().__init__()
         self.parser_name = "realt_by"
 
-    def get_all_last_flats_links(self, page_from=1, page_to=1):
+    def get_all_last_flats_links(self, page_from=1, page_to=1) -> list[str]:
         flat_links = []
         while page_from <= page_to:
             resp = requests.get(f'https://realt.by/sale/flats/?page={page_from}')
@@ -27,7 +27,7 @@ class RealtBS4Parser(Parser):
         ready_links = list(filter(lambda el: 'object' in el, flat_links))
         return ready_links
 
-    def enrich_links_to_flats(self, url_list):
+    def enrich_links_to_flats(self, url_list: list[str]) -> list[Flat]:
         flats = []
         for link in tqdm(url_list, desc=f'Creating Flat objects from links ({self.parser_name})'):
             resp = requests.get(link)
@@ -97,7 +97,7 @@ class GoHomeBS4Parser(Parser):
         super().__init__()
         self.parser_name = "gohome_by"
 
-    def get_all_last_flats_links(self, page_from=1, page_to=1):
+    def get_all_last_flats_links(self, page_from=1, page_to=1) -> list[str]:
         flat_links = []
         while page_from <= page_to:
             resp = requests.get(f'https://gohome.by/sale/search/30?search[type]=1&search[map_latitude]=&search[map_longitude]=&'
@@ -113,7 +113,7 @@ class GoHomeBS4Parser(Parser):
             page_from += 1
         return flat_links
 
-    def enrich_links_to_flats(self, url_list):
+    def enrich_links_to_flats(self, url_list: list[str]) -> list[Flat]:
         flats = []
         for link in tqdm(url_list, desc=f'Creating Flat objects from links ({self.parser_name})'):
             resp = requests.get(link)
