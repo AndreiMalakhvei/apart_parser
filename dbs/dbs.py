@@ -12,7 +12,7 @@ from psycopg2 import extras as ext
 class DataBase(ABC):
     @staticmethod
     @abstractmethod
-    def save_flat_to_db(flat: Flat):
+    def save_flat_to_db(flat: Flat) -> None:
         pass
 
 
@@ -89,7 +89,8 @@ class PostgresqlDB(SQLDataBase):
                     objhash CHARACTER VARYING(50),
                     photo_qty INTEGER,
                     photo_links  TEXT,
-                    description TEXT
+                    description TEXT,
+                    price_m NUMERIC(8, 2)
                     
                         )''')
 
@@ -112,7 +113,7 @@ class PostgresqlDB(SQLDataBase):
             with conn.cursor() as cur:
                 cur.execute('''
                         INSERT INTO flats (link, reference, price, title, description, pubdate,areas,city,address,region,rooms,
-                        exyear,seller, objhash, photo_links, photo_qty) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                        exyear,seller, objhash, photo_links, photo_qty, price_m) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
                         ON CONFLICT (link) DO UPDATE 
                         SET 
                         link = EXCLUDED.link, 
@@ -128,11 +129,12 @@ class PostgresqlDB(SQLDataBase):
                         exyear = EXCLUDED.exyear,
                         seller=EXCLUDED.seller,
                         objhash=EXCLUDED.objhash,
-                        photo_links=EXCLUDED.photo_links                 
+                        photo_links=EXCLUDED.photo_links,
+                        price_m=EXCLUDED.price_m                 
                          ''',
                             (flat.link, flat.reference, flat.price, flat.title, flat.description, flat.pubdate,
                              flat.areas, flat.city, flat.address, flat.region, flat.rooms, flat.exyear,
-                             flat.seller, flat.objhash, ','.join(flat.photo_links), flat.photo_qty)
+                             flat.seller, flat.objhash, ','.join(flat.photo_links), flat.photo_qty, flat.price_m)
                             )
     @staticmethod
     def get_all_not_posted_flats(parser_types):
@@ -140,7 +142,7 @@ class PostgresqlDB(SQLDataBase):
                               host=PostgresqlDB.HOST) as conn:
             with conn.cursor() as cur:
                 cur.execute('''
-                        SELECT link, reference, price, title, description, pubdate, photo_links, id FROM flats
+                        SELECT * FROM flats
                         WHERE (is_tg_posted = false or is_tg_posted IS NULL) 
                         and reference IN %(parser_types)s
                      ''',
@@ -168,7 +170,7 @@ class PostgresqlDB(SQLDataBase):
             with conn.cursor() as cur:
                 ext.execute_batch(cur, '''
                         INSERT INTO flats (link, reference, price, title, description, pubdate,areas,city,address,region,rooms,
-                        exyear,seller, objhash, photo_links, photo_qty) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+                        exyear,seller, objhash, photo_links, photo_qty, price_m) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
                         ON CONFLICT (link) DO UPDATE 
                         SET 
                         link = EXCLUDED.link, 
@@ -184,12 +186,13 @@ class PostgresqlDB(SQLDataBase):
                         exyear = EXCLUDED.exyear,
                         seller=EXCLUDED.seller,
                         objhash=EXCLUDED.objhash,
-                        photo_links=EXCLUDED.photo_links                 
+                        photo_links=EXCLUDED.photo_links,
+                        price_m=EXCLUDED.price_m                 
                          ''',
                                   (
                                       (x.link, x.reference, x.price, x.title, x.description, x.pubdate, x.areas,
                                        x.city,x.address,x.region,x.rooms, x.exyear,x.seller, x.objhash, x.photo_links,
-                                       x.photo_qty) for x in batch_of_flats), page_size=1000
+                                       x.photo_qty, x.price_m) for x in batch_of_flats), page_size=1000
                             )
 
     @staticmethod

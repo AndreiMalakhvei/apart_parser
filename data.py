@@ -18,3 +18,7 @@ class Flat:
         self.seller = seller
         self.photo_links = photo_links
         self.photo_qty = photo_qty
+        self.price_m = None
+        if self.areas and self.price:
+            self.price_m = self.price / self.areas
+

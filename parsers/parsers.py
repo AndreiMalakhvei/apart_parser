@@ -41,7 +41,12 @@ class RealtBS4Parser(Parser):
                 price = int(re.sub('[^0-9]', '', raw_price.text.strip()))
             else:
                 price = 0
-            description = html.find('section', class_='bg-white').text.strip()
+
+            try:
+                description = html.find('section', class_='bg-white').text.strip()
+            except Exception:
+                description = "Check this link!"
+
             try:
                 pubdate = datetime.strptime(html.find('span', class_='mr-1.5').text.strip(), '%d.%m.%Y')
             except Exception as e:
@@ -72,32 +77,16 @@ class RealtBS4Parser(Parser):
                 exyear = int(re.sub('[^0-9]', '', dc.get("Год постройки", 0)))
             except TypeError:
                 print(f'rooms or year error under {link}')
+                rooms = 0
+                exyear = 0
 
             images_tags = html.find_all('img', attrs={"data-nimg": "fill", "loading": "lazy"}, class_='blur-sm')
             photo_links = []
             for image in images_tags:
                 photo_links.append(image['src'])
 
-            new_flat = (Flat(
-                title=title,
-                price=price,
-                description=description,
-                pubdate=pubdate,
-                areas=areas,
-                city=city,
-                address=address,
-                region=region,
-                rooms=rooms,
-                exyear=exyear,
-                seller=seller
-                ))
-            objhash = hashlib.md5(bytearray(str(new_flat.__dict__), 'utf-8'))
-            hd = objhash.hexdigest()
-            new_flat.objhash = str(hd)
-            new_flat.photo_links = photo_links
-            new_flat.photo_qty = len(photo_links)
-            new_flat.link = link
-            new_flat.reference = self.parser_name
+            new_flat = self._create_new_flat_instance(title, price, description, pubdate, areas, city,address, region,
+                                                      rooms, exyear, seller, photo_links, link)
             flats.append(new_flat)
 
         return flats
@@ -172,26 +161,8 @@ class GoHomeBS4Parser(Parser):
             for image in images_tags:
                 photo_links.append('https://gohome.by' + image.next_element.next_element['data-zlazy'])
 
-            new_flat = (Flat(
-                title=title,
-                price=price,
-                description=description,
-                pubdate=pubdate,
-                areas=areas,
-                city=city,
-                address=address,
-                region=region,
-                rooms=rooms,
-                exyear=exyear,
-                seller=seller
-            ))
-            objhash = hashlib.md5(bytearray(str(new_flat.__dict__), 'utf-8'))
-            hd = objhash.hexdigest()
-            new_flat.objhash = str(hd)
-            new_flat.photo_links = photo_links
-            new_flat.link = link
-            new_flat.photo_qty = len(photo_links)
-            new_flat.reference = self.parser_name
+            new_flat = self._create_new_flat_instance(title, price, description, pubdate, areas, city, address, region,
+                                                      rooms, exyear, seller, photo_links, link)
             flats.append(new_flat)
 
         return flats

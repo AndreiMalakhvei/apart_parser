@@ -28,11 +28,13 @@ class WebSiteHandler:
         for item in obj_list:
             if not self.db.check_if_exists(item):
                 self.db.save_flat_to_db(item)
+        print(f'{self.parser_sub} results added to the database {self.db.name}')
 
     def run(self, page_from: int = 1, page_to: int = 1):
         links_list = self.get_urls_list(page_from, page_to)
         objs_list = self.build_flats_list(links_list)
         self.db.batch_save_flat_to_db(objs_list)
+
 
 
 
