@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from data import Flat
 import re
 from datetime import datetime
-import hashlib
 from tqdm import tqdm
 from parsers.baseparser import Parser
 
@@ -166,3 +165,9 @@ class GoHomeBS4Parser(Parser):
             flats.append(new_flat)
 
         return flats
+
+if __name__ == "__main__":
+    link = 'https://realt.by/sale-flats/object/2952851/'
+    resp= requests.get(link)
+    html = BeautifulSoup(resp.content, 'html.parser')
+    print()

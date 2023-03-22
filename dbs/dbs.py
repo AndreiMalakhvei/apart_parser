@@ -30,10 +30,6 @@ class SQLDataBase(DataBase):
         pass
 
 
-
-
-
-
 class FireStorage(DataBase):
 
     def __new__(cls):

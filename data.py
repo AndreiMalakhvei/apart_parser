@@ -6,7 +6,7 @@ class Flat:
     def __init__(self, link: Optional[str] = None, reference: Optional[str] = None, price: Optional[int] = None,
                  title: Optional[str] = None, description: Optional[str] = None, pubdate: Optional[datetime] = None,
                  areas: Optional[float] = None, city: Optional[str] = None, address: Optional[str] = None,
-                 region: Optional[str] = None, rooms: Optional[int] = None, exyear: Optional[str] = None,
+                 region: Optional[str] = None, rooms: Optional[int] = None, exyear: Optional[int] = None,
                  objhash: Optional[str] = None, seller: Optional[str] = None, photo_links: Optional[list[str]] = None,
                  photo_qty: Optional[int] = None):
         self.link = link

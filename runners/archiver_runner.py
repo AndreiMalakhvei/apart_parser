@@ -1,5 +1,4 @@
 import schedule
-import threading
 from constants import postgresql
 import requests
 from tqdm import tqdm
