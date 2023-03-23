@@ -222,3 +222,50 @@ class PostgresqlDB(SQLDataBase):
                          ''',
                             [ids, ]
                             )
+    @staticmethod
+    def add_filter(data) -> None:
+        with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
+                              host=PostgresqlDB.HOST) as conn:
+            with conn.cursor() as cur:
+                cur.execute('''
+                        INSERT INTO bot_filter (userid, city, lowprice) VALUES (%s, %s, %s) 
+                        ON CONFLICT (userid) DO UPDATE 
+                        SET 
+                        city = EXCLUDED.city, 
+                        lowprice = EXCLUDED.lowprice                                 
+                         ''',
+                            (data['userid'], data['city'], data['lowprice'])
+                            )
+
+    @staticmethod
+    def get_subscribers() -> list[tuple[Any, ...]]:
+        with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
+                              host=PostgresqlDB.HOST) as conn:
+            with conn.cursor() as cur:
+                cur.execute('''
+                            SELECT * FROM bot_filter                            
+                         ''')
+                return cur.fetchall()
+
+
+    @staticmethod
+    def get_posts_for_subscriber(subscriber: tuple) -> list[tuple[Any, ...]]:
+        condition1 = ''
+        condition2 = ''
+        if subscriber[1]:
+            condition1 = subscriber[1]
+        if subscriber[2]:
+            condition2 = 'AND price_m < (SELECT AVG(f.price_m) FROM flats f)'
+
+        with psycopg2.connect(dbname=PostgresqlDB.DBNAME, user=PostgresqlDB.USER, password=PostgresqlDB.PASSWORD,
+                              host=PostgresqlDB.HOST) as conn:
+            with conn.cursor() as cur:
+                cur.execute('''
+                        SELECT * FROM flats
+                        WHERE (is_tg_posted = false or is_tg_posted IS NULL) 
+                        AND city LIKE %s
+                        %s
+                     ''',
+                            (condition1, condition2)
+                            )
+                return cur.fetchall()
