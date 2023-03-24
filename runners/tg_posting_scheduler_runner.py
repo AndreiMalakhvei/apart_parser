@@ -1,6 +1,7 @@
 import schedule
 import time
 from datetime import datetime
+import sentry_logger
 
 from constants import postgresql, PARSED_WEBSITES
 from tbot.secret_key_bot import BOT_SECRET_KEYS

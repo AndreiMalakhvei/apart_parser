@@ -5,6 +5,8 @@ import re
 from datetime import datetime
 from tqdm import tqdm
 from parsers.baseparser import Parser
+import logging
+import traceback
 
 
 class RealtBS4Parser(Parser):
@@ -30,26 +32,33 @@ class RealtBS4Parser(Parser):
         flats = []
         for link in tqdm(url_list, desc=f'Creating Flat objects from links ({self.parser_name})'):
             resp = requests.get(link)
+            if resp.status_code != 200:
+                logging.warning(f"{datetime.now}: got http response {resp.status_code} under {link}")
             html = BeautifulSoup(resp.content, 'html.parser')
+
             try:
                 title = html.find('h1', class_='order-1').text.strip()
-            except AttributeError as e:
+            except AttributeError:
                 title = 'NO TITLE PROVIDED'
+                logging.error(f"Title not found under {link} .{traceback.format_exc()}")
             raw_price = html.find('h2', class_='w-full')
             if raw_price is not None:
                 price = int(re.sub('[^0-9]', '', raw_price.text.strip()))
             else:
                 price = 0
+                logging.warning(f"Price not found under {link} ")
 
             try:
                 description = html.find('section', class_='bg-white').text.strip()
-            except Exception:
-                description = "Check this link!"
+            except AttributeError:
+                description = "NO DESCRIPTION PROVIDED"
+                logging.error(f"Description not found under {link} .{traceback.format_exc()}")
 
             try:
                 pubdate = datetime.strptime(html.find('span', class_='mr-1.5').text.strip(), '%d.%m.%Y')
             except Exception as e:
                 pubdate = datetime.now()
+                logging.error(f"Date not found under {link} .{traceback.format_exc()}")
 
             agency_seller = html.find("a", attrs={"aria-label": "Ссылка на агентство"})
             contact_seller = html.find(class_=['md:w-1/2 lg:w-full lg:mt-4 md:mt-0 w-full mt-2'])
@@ -63,6 +72,7 @@ class RealtBS4Parser(Parser):
                 seller = owner_seller.text.removeprefix('Отдел продаж')
             else:
                 seller = "NONE??!!"
+                logging.warning(f"Seller not found under {link} ")
 
             lst = html.find_all(class_="max-w-[282px]")
             dc = {item.text: item.next_sibling.text.strip() for item in lst}
@@ -78,6 +88,7 @@ class RealtBS4Parser(Parser):
                 print(f'rooms or year error under {link}')
                 rooms = 0
                 exyear = 0
+                logging.error(f"Rooms and exyear not found under {link} .{traceback.format_exc()}")
 
             images_tags = html.find_all('img', attrs={"data-nimg": "fill", "loading": "lazy"}, class_='blur-sm')
             photo_links = []
@@ -116,17 +127,21 @@ class GoHomeBS4Parser(Parser):
         flats = []
         for link in tqdm(url_list, desc=f'Creating Flat objects from links ({self.parser_name})'):
             resp = requests.get(link)
+            if resp.status_code != 200:
+                logging.warning(f"{datetime.now}: got http response {resp.status_code} under {link}")
             html = BeautifulSoup(resp.content, 'html.parser')
 
             if html.find("div", class_='left-side'):
                 title = html.find("div", class_='left-side').text.strip()
             else:
                 title = "No title provided"
+                logging.warning(f"Title not found under {link}")
 
             try:
                 price = int(re.sub('[^0-9]', '', html.find("div", class_='price big').text.strip()))
             except (TypeError, ValueError):
                 price = 0
+                logging.error(f"Price not found under {link} .{traceback.format_exc()}")
 
             description = html.find('article').text
 
@@ -138,10 +153,12 @@ class GoHomeBS4Parser(Parser):
                 rooms = int(re.sub('[^0-9]', '', dc['Комнат:']))
             except Exception as e:
                 rooms = 0
+                logging.error(f"Rooms not found under {link} .{traceback.format_exc()}")
             try:
                 pubdate = datetime.strptime(dc["Дата обновления:"].strip(), '%d.%m.%Y')
             except Exception as e:
                 pubdate = datetime.now()
+                logging.error(f"Pubdate not found under {link} .{traceback.format_exc()}")
 
             city = dc.get('Населенный пункт:', "").strip()
             address  = dc.get('Улица, дом:', "").strip()
@@ -149,8 +166,9 @@ class GoHomeBS4Parser(Parser):
 
             try:
                 exyear = int(re.sub('[^0-9]', '', dc['Год постройки:']))
-            except Exception as e:
+            except Exception:
                 exyear = 0
+                logging.error(f"Exyear not found under {link} .{traceback.format_exc()}")
 
             seller = list(html.find('div', class_='customize-svg-inline-icon login').parent.stripped_strings)[-1]
 

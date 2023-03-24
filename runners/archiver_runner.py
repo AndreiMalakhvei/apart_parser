@@ -4,6 +4,7 @@ import requests
 from tqdm import tqdm
 import time
 from datetime import datetime
+import sentry_logger
 
 START_TIME = '01:00'
 

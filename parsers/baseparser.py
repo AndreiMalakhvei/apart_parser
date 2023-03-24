@@ -42,3 +42,5 @@ class Parser(ABC):
         new_flat.link = link
         new_flat.reference = self.parser_name
         return new_flat
+
+

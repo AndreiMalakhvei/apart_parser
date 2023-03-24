@@ -3,6 +3,7 @@ import time
 import threading
 from datetime import datetime
 from constants import PARSED_WEBSITES
+import sentry_logger
 
 PARSE_EVERY_MINUTES = 20
 
@@ -13,7 +14,7 @@ def parse_all() -> None:
         thread.start()
         print(f'Парсер {website.parser_sub} стартовал: {datetime.now()}')
 
-schedule.every(PARSE_EVERY_MINUTES).minutes.do(parse_all)
+schedule.every(PARSE_EVERY_MINUTES).seconds.do(parse_all)
 
 
 while True:
