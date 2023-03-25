@@ -1,8 +1,32 @@
 import hashlib
 from abc import ABC, abstractmethod
 from datetime import datetime
+import logging
+import inspect
+from datetime import datetime
 
 from data import Flat
+
+
+def log_parse_result(func):
+    def inner_handler(*args, **kwargs):
+        try:
+            res = func(*args, **kwargs)
+        except Exception:
+            logging.error("")
+            res = None
+            try:
+                return_type = inspect.get_annotations(func)['return'].__name__
+            except KeyError:
+                return_type = None
+            if return_type == 'str':
+                res = 'Unable to retrieve data'
+            elif return_type in ('int', 'float'):
+                res = 0
+            elif return_type == 'datetime':
+                res = datetime.now()
+        return res
+    return inner_handler
 
 
 class Parser(ABC):
@@ -43,4 +67,7 @@ class Parser(ABC):
         new_flat.reference = self.parser_name
         return new_flat
 
-
+    @staticmethod
+    @abstractmethod
+    def parse_title() -> str:
+        pass
