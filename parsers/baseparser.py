@@ -1,12 +1,11 @@
 import hashlib
 from abc import ABC, abstractmethod
-from datetime import datetime
 import logging
 import inspect
 from datetime import datetime
-
+from bs4 import BeautifulSoup
 from data import Flat
-
+from typing import Optional
 
 def log_parse_result(func):
     def inner_handler(*args, **kwargs):
@@ -25,6 +24,8 @@ def log_parse_result(func):
                 res = 0
             elif return_type == 'datetime':
                 res = datetime.now()
+            elif return_type == 'list':
+                res = []
         return res
     return inner_handler
 
@@ -67,7 +68,63 @@ class Parser(ABC):
         new_flat.reference = self.parser_name
         return new_flat
 
+
     @staticmethod
     @abstractmethod
-    def parse_title() -> str:
+    def parse_title(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_price(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_description(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_pubdate(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> datetime:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_areas(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> float:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_city(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_address(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_region(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_rooms(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_exyear(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_seller(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_photo_links(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> list[str]:
         pass
