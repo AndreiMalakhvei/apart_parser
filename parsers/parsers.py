@@ -30,68 +30,68 @@ class RealtBS4Parser(Parser):
 
     @staticmethod
     @log_parse_result
-    def parse_title(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_title(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         title = html.find('h1', class_='order-1').text.strip()
         return title
 
     @staticmethod
     @log_parse_result
-    def parse_price(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+    def parse_price(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
         raw_price = html.find('h2', class_='w-full')
         price = int(re.sub('[^0-9]', '', raw_price.text.strip()))
         return price
 
     @staticmethod
     @log_parse_result
-    def parse_description(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_description(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         description = html.find('section', class_='bg-white').text.strip()
         return description
 
     @staticmethod
     @log_parse_result
-    def parse_pubdate(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> datetime:
+    def parse_pubdate(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> datetime:
         pubdate = datetime.strptime(html.find('span', class_='mr-1.5').text.strip(), '%d.%m.%Y')
         return pubdate
 
     @staticmethod
     @log_parse_result
-    def parse_areas(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> float:
+    def parse_areas(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> float:
         areas = float(context["Площадь общая"].split()[0])
         return areas
 
     @staticmethod
     @log_parse_result
-    def parse_city(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_city(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         city = context["Населенный пункт"]
         return city
 
     @staticmethod
     @log_parse_result
-    def parse_address(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_address(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         city = context["Улица"]
         return city
 
     @staticmethod
     @log_parse_result
-    def parse_region(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_region(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         region = context["Район города"]
         return region
 
     @staticmethod
     @log_parse_result
-    def parse_rooms(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+    def parse_rooms(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
         rooms = int(re.sub('[^0-9]', '', context["Количество комнат"]))
         return rooms
 
     @staticmethod
     @log_parse_result
-    def parse_exyear(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+    def parse_exyear(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
         exyear = int(re.sub('[^0-9]', '', context["Количество комнат"]))
         return exyear
 
     @staticmethod
     @log_parse_result
-    def parse_seller(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_seller(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         agency_seller = html.find("a", attrs={"aria-label": "Ссылка на агентство"})
         contact_seller = html.find(class_=['md:w-1/2 lg:w-full lg:mt-4 md:mt-0 w-full mt-2'])
         owner_seller = html.find(class_=['w-full md:w-1/2 lg:w-full'])
@@ -107,7 +107,7 @@ class RealtBS4Parser(Parser):
 
     @staticmethod
     @log_parse_result
-    def parse_photo_links(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> list[str]:
+    def parse_photo_links(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> list[str]:
         images_tags = html.find_all('img', attrs={"data-nimg": "fill", "loading": "lazy"}, class_='blur-sm')
         photo_links = []
         for image in images_tags:
@@ -126,18 +126,18 @@ class RealtBS4Parser(Parser):
             lst = html.find_all(class_="max-w-[282px]")
             dc = {item.text: item.next_sibling.text.strip() for item in lst}
 
-            title = self.parse_title(html=html)
-            price = self.parse_price(html=html)
-            description = self.parse_description(html=html)
-            pubdate = self.parse_pubdate(html=html)
-            areas = self.parse_areas(context=dc)
-            city = self.parse_city(context=dc)
-            address = self.parse_address(context=dc)
-            region = self.parse_region(context=dc)
-            rooms = self.parse_rooms(context=dc)
-            exyear = self.parse_exyear(context=dc)
-            seller = self.parse_seller(html=html)
-            photo_links = self.parse_photo_links(html=html)
+            title = self.parse_title(link=link, html=html)
+            price = self.parse_price(link=link, html=html)
+            description = self.parse_description(link=link, html=html)
+            pubdate = self.parse_pubdate(link=link, html=html)
+            areas = self.parse_areas(link=link, context=dc)
+            city = self.parse_city(link=link, context=dc)
+            address = self.parse_address(link=link, context=dc)
+            region = self.parse_region(link=link, context=dc)
+            rooms = self.parse_rooms(link=link, context=dc)
+            exyear = self.parse_exyear(link=link, context=dc)
+            seller = self.parse_seller(link=link, html=html)
+            photo_links = self.parse_photo_links(link=link, html=html)
 
             new_flat = self._create_new_flat_instance(title, price, description, pubdate, areas, city,address, region,
                                                       rooms, exyear, seller, photo_links, link)
@@ -169,73 +169,73 @@ class GoHomeBS4Parser(Parser):
 
     @staticmethod
     @log_parse_result
-    def parse_title(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_title(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         title = html.find("div", class_='left-side').text.strip()
         return title
 
     @staticmethod
     @log_parse_result
-    def parse_price(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+    def parse_price(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
         price = int(re.sub('[^0-9]', '', html.find("div", class_='price big').text.strip()))
         return price
 
     @staticmethod
     @log_parse_result
-    def parse_description(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_description(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         description = html.find('article').text
         return description
 
     @staticmethod
     @log_parse_result
-    def parse_pubdate(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> datetime:
+    def parse_pubdate(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> datetime:
         pubdate = datetime.strptime(context["Дата обновления:"].strip(), '%d.%m.%Y')
         return pubdate
 
     @staticmethod
     @log_parse_result
-    def parse_areas(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> float:
+    def parse_areas(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> float:
         areas = (float(context["Площадь общая:"].split()[0]))
         return areas
 
     @staticmethod
     @log_parse_result
-    def parse_city(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_city(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         city = context['Населенный пункт:'].strip()
         return city
 
     @staticmethod
     @log_parse_result
-    def parse_address(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_address(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         address = context['Улица, дом:'].strip()
         return address
 
     @staticmethod
     @log_parse_result
-    def parse_region(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_region(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         region = context['Район:'].strip()
         return region
 
     @staticmethod
     @log_parse_result
-    def parse_rooms(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+    def parse_rooms(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
         rooms = int(re.sub('[^0-9]', '', context['Комнат:']))
         return rooms
 
     @staticmethod
     @log_parse_result
-    def parse_exyear(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+    def parse_exyear(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
         exyear = int(re.sub('[^0-9]', '', context['Год постройки:']))
         return exyear
 
     @staticmethod
     @log_parse_result
-    def parse_seller(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_seller(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         seller = list(html.find('div', class_='customize-svg-inline-icon login').parent.stripped_strings)[-1]
         return seller
 
     @staticmethod
     @log_parse_result
-    def parse_photo_links(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> list[str]:
+    def parse_photo_links(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> list[str]:
         images_tags = filter(lambda x: len(x.attrs['class']) == 1, html.find_all('div', class_="responsive-image"))
         photo_links = []
         for image in images_tags:
@@ -253,18 +253,18 @@ class GoHomeBS4Parser(Parser):
             inf_lst = [list(x.stripped_strings) for x in html.find_all("li", class_="li-feature")]
             dc = {item[0]: item[1] for item in inf_lst if len(item) > 1}
 
-            title = self.parse_title(html=html)
-            price = self.parse_price(html=html)
-            description = self.parse_description(html=html)
-            pubdate = self.parse_pubdate(context=dc)
-            areas = self.parse_areas(context=dc)
-            city = self.parse_city(context=dc)
-            address = self.parse_address(context=dc)
-            region = self.parse_region(context=dc)
-            rooms = self.parse_rooms(context=dc)
-            exyear = self.parse_exyear(context=dc)
-            seller = self.parse_seller(html=html)
-            photo_links = self.parse_photo_links(html=html)
+            title = self.parse_title(link=link, html=html)
+            price = self.parse_price(link=link, html=html)
+            description = self.parse_description(link=link, html=html)
+            pubdate = self.parse_pubdate(link=link, context=dc)
+            areas = self.parse_areas(link=link, context=dc)
+            city = self.parse_city(link=link, context=dc)
+            address = self.parse_address(link=link, context=dc)
+            region = self.parse_region(link=link, context=dc)
+            rooms = self.parse_rooms(link=link, context=dc)
+            exyear = self.parse_exyear(link=link, context=dc)
+            seller = self.parse_seller(link=link, html=html)
+            photo_links = self.parse_photo_links(link=link, html=html)
 
             new_flat = self._create_new_flat_instance(title, price, description, pubdate, areas, city, address, region,
                                                       rooms, exyear, seller, photo_links, link)

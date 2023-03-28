@@ -8,7 +8,8 @@ postgresql = PostgresqlDB()
 realt_handler = WebSiteHandler(RealtBS4Parser(), postgresql)
 gohome_handler = WebSiteHandler(GoHomeBS4Parser(), postgresql)
 
-PARSED_WEBSITES = [realt_handler, gohome_handler]
+# PARSED_WEBSITES = [realt_handler, gohome_handler]
+PARSED_WEBSITES = [gohome_handler]
 
 import sentry_sdk
 sentry_sdk.init(

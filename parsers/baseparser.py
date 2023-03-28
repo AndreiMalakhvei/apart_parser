@@ -6,13 +6,16 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from data import Flat
 from typing import Optional
+import traceback
 
 def log_parse_result(func):
     def inner_handler(*args, **kwargs):
         try:
             res = func(*args, **kwargs)
-        except Exception:
-            logging.error("")
+        except Exception as e:
+            logging.warning("Parse warning: unable to get %s at %s. Traceback: %s", func.__qualname__,
+                            kwargs['link'], traceback.format_exc())
+
             res = None
             try:
                 return_type = inspect.get_annotations(func)['return'].__name__
@@ -71,60 +74,61 @@ class Parser(ABC):
 
     @staticmethod
     @abstractmethod
-    def parse_title(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_title(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_price(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+    def parse_price(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_description(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_description(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_pubdate(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> datetime:
+    def parse_pubdate(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> datetime:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_areas(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> float:
+    def parse_areas(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> float:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_city(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_city(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_address(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_address(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_region(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_region(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_rooms(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+    def parse_rooms(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_exyear(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
+    def parse_exyear(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> int:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_seller(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
+    def parse_seller(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> str:
         pass
 
     @staticmethod
     @abstractmethod
-    def parse_photo_links(*, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None) -> list[str]:
+    def parse_photo_links(*, link: str, html: Optional[BeautifulSoup] = None, context: Optional[dict] = None)\
+            -> list[str]:
         pass
